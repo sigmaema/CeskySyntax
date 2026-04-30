@@ -1,9 +1,11 @@
 # CeskySyntax - Nástroj k programování v Českém jazyce
 
-## Toto je projekt určený pro uživatele českého jazyka, kteří mají po krk anglicismů a zkratek, jež nedávají smysl. Přicházím se zcela novým programovacím jazykem, který používá syntax C++, akorát s tím rozdílem, že používá výhradně České výrazy (s výjimkou nezbytné interpunkce). Pro překlad byl použit překladač Google (© Google Translate), s jakýmikoli stížnostmi proto prosím kontaktujte © Google LLC
+### Toto je projekt určený pro uživatele českého jazyka, kteří mají po krk anglicismů a zkratek, jež nedávají smysl. Přicházím se zcela novým programovacím jazykem, který používá syntax C++, akorát s tím rozdílem, že používá výhradně České výrazy (s výjimkou nezbytné interpunkce). Pro překlad byl použit překladač Google (© Google Translate), s jakýmikoli stížnostmi proto prosím kontaktujte © Google LLC
 
 Tento projekt je kompilátor typu zdrojový kód na zdrojový kód (transpiler)
+
 Obsahuje také jednoduchý editor pro zjednodušení práce s kódem, jeho kompilací a spuštěním
+
 Zjednodušeně:
 1. Čte kód napsaný ve vlastním jazyce
 2. Překládá jej na platný C++
@@ -184,10 +186,12 @@ int main() {
 
 # CeskySyntax - Tool for Programming in the Czech Language
 
-## This is a project intended for Czech-speaking users who are fed up with anglicisms and abbreviations that make no sense. I am introducing a completely new programming language that uses C++ syntax, with the difference that it uses exclusively Czech expressions (except for necessary punctuation). Google Translate (© Google Translate) was used for the translation, so please direct any complaints to © Google LLC.
+### This is a project intended for Czech-speaking users who are fed up with anglicisms and abbreviations that make no sense. I am introducing a completely new programming language that uses C++ syntax, with the difference that it uses exclusively Czech expressions (except for necessary punctuation). Google Translate (© Google Translate) was used for the translation, so please direct any complaints to © Google LLC.
 
-This project is a source-to-source compiler (transpiler):
+This project is a source-to-source compiler (transpiler)
+
 It also includes a simple editor to simplify working with code, its compilation and execution
+
 In simple terms:
 1. Reads code written in a custom language
 2. Translates it to valid C++
