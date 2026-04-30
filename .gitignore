@@ -1,0 +1,13 @@
+build/
+*.exe
+*.obj
+*.o
+*.pdb
+*.ilk
+*.dll
+generated.cpp
+test_output.cpp
+temp_source.csx
+temp_generated.cpp
+temp_generated.exe
+.env
