@@ -1,13 +1,16 @@
 build/
+build-mingw/
 *.exe
 *.obj
 *.o
 *.pdb
 *.ilk
 *.dll
+*.a
 generated.cpp
 test_output.cpp
 temp_source.csx
 temp_generated.cpp
 temp_generated.exe
 .env
+.vscode/

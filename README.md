@@ -80,7 +80,29 @@ Příkazy:
 - `spustitexe` — Spuštění posledního vygenerovaného souboru (bez rekompilace)
 - `smazatvse` — Vymazání veškerého kódu
 - `ukoncit` — Zavření editoru
-- a jeden secret command dohledatelný v kódu (niche reference)
+
+## GUI (Dear ImGui) — Volitelně
+
+Projekt byl od posledního commitu obohacen o nenáročný GUI editor uzpůsobený českému syntaxu.
+
+editor je schopen:
+- uložit kód
+- přeložit a spustit kód
+- spustit poslední přeložený soubor
+- načíst poslední uložený kód/příklad kódu
+
+### Spuštění GUI
+
+Závislosti (ImGui, GLFW, ImGuiColorTextEdit) jsou již zahrnuty v `third_party/` jako vendored knihovny.
+
+Na Windows s MinGW:
+
+```powershell
+$env:PATH = "C:/Program Files/CMake/bin;C:/path/to/llvm-mingw/bin;" + $env:PATH
+cmake -S . -B build-mingw -G "Unix Makefiles"
+cmake --build build-mingw --target cesky_gui
+.\build-mingw\cesky_gui.exe
+```
 
 ## Příklad Vstupu (`.csx`) (hezký čitelný kód)
 
@@ -267,6 +289,27 @@ Commands:
 - `smazatvse` — Deletion of all code
 - `ukoncit` — Closing the editor
 - and a secret command that you can find in the code (it's a niche reference)
+
+## GUI (Dear ImGui)
+
+The project now includes a lightweight GUI editor tailored to Czech syntax. The editor is capable of:
+- Saving code
+- Transpiling and running code
+- Running the last compiled file
+- Loading previously saved code/example code
+
+### Run GUI
+
+Dependencies (ImGui, GLFW, ImGuiColorTextEdit) are already included in `third_party/` as vendored libraries.
+
+On Windows with MinGW:
+
+```powershell
+$env:PATH = "C:/Program Files/CMake/bin;C:/path/to/llvm-mingw/bin;" + $env:PATH
+cmake -S . -B build-mingw -G "Unix Makefiles"
+cmake --build build-mingw --target cesky_gui
+.\build-mingw\cesky_gui.exe
+```
 
 ## Example Input (`.csx`) (nice readable code)
 
