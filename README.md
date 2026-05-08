@@ -146,29 +146,39 @@ int main() {
 |---|---|---|
 | celé číslo | int | Datový typ |
 | levituj | float | Datový typ |
+| krátké desetinné číslo | float | Datový typ (varianta) |
 | dvojté | double | Datový typ |
+| dlouhé desetinné číslo | double | Datový typ (varianta) |
 | charakter | char | Datový typ |
+| znak | char | Datový typ (varianta) |
 | pravdivostní hodnota | bool | Datový typ |
 | prázdnota | void | Datový typ |
+| funkce | void | Datový typ (varianta) |
 | provázek | string | Datový typ |
+| text | string | Datový typ (varianta) |
 | pravda | true | Literál |
 | falešný | false | Literál |
+| nepravda | false | Literál (varianta) |
 | když | if | Kontrolní tok |
 | jinak kdyby | else if | Kontrolní tok |
 | jinak | else | Kontrolní tok |
 | přepínač | switch | Kontrolní tok |
 | věc | case | Kontrolní tok |
+| případ | case | Kontrolní tok (varianta) |
 | výchozí | default | Kontrolní tok |
 | přerušení | break | Kontrolní tok |
 | pokračovat | continue | Kontrolní tok |
 | návrat | return | Kontrolní tok |
+| vrátit | return | Kontrolní tok (varianta) |
 | pro | for | Kontrolní tok |
 | zatímco | while | Kontrolní tok |
 | dělat | do | Kontrolní tok |
 | třída | class | Objektové programování |
 | strukturovat | struct | Objektové programování |
 | veřejnost | public | Objektové programování |
+| veřejný | public | Objektové programování (varianta) |
 | soukromé | private | Objektové programování |
+| soukromý | private | Objektové programování (varianta) |
 | chráněný | protected | Objektové programování |
 | tento | this | Objektové programování |
 | viruální | virtual | Objektové programování |
@@ -353,29 +363,39 @@ int main() {
 |---|---|---|
 | celé číslo | int | Data Type |
 | levituj | float | Data Type |
+| krátké desetinné číslo | float | Data Type (variant) |
 | dvojté | double | Data Type |
+| dlouhé desetinné číslo | double | Data Type (variant) |
 | charakter | char | Data Type |
+| znak | char | Data Type (variant) |
 | pravdivostní hodnota | bool | Data Type |
 | prázdnota | void | Data Type |
+| funkce | void | Data Type (variant) |
 | provázek | string | Data Type |
+| text | string | Data Type (variant) |
 | pravda | true | Literal |
 | falešný | false | Literal |
+| nepravda | false | Literal (variant) |
 | když | if | Control Flow |
 | jinak kdyby | else if | Control Flow |
 | jinak | else | Control Flow |
 | přepínač | switch | Control Flow |
 | věc | case | Control Flow |
+| případ | case | Control Flow (variant) |
 | výchozí | default | Control Flow |
 | přerušení | break | Control Flow |
 | pokračovat | continue | Control Flow |
 | návrat | return | Control Flow |
+| vrátit | return | Control Flow (variant) |
 | pro | for | Control Flow |
 | zatímco | while | Control Flow |
 | dělat | do | Control Flow |
 | třída | class | Object-Oriented |
 | strukturovat | struct | Object-Oriented |
 | veřejnost | public | Object-Oriented |
+| veřejný | public | Object-Oriented (variant) |
 | soukromé | private | Object-Oriented |
+| soukromý | private | Object-Oriented (variant) |
 | chráněný | protected | Object-Oriented |
 | tento | this | Object-Oriented |
 | viruální | virtual | Object-Oriented |

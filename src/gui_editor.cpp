@@ -128,8 +128,8 @@ static void updateDeclaredVariables(const std::string& code, TextEditor::Languag
     langDef.mIdentifiers.clear();
     
     // Pattern to match: (type keyword) (variable name)
-    // Examples: "celé číslo x", "levituj foo", "provázek myVar", etc.
-    std::regex typePattern(R"((celé\s+číslo|levituj|dvojté|charakter|provázek|pravdivostní\s+hodnota)\s+([a-zA-Z_][a-zA-Z0-9_]*))");
+    // Examples: "celé číslo x", "levituj foo", "text myVar", etc.
+    std::regex typePattern(R"((celé\s+číslo|levituj|krátké\s+desetinné\s+číslo|dvojté|dlouhé\s+desetinné\s+číslo|charakter|znak|provázek|text|pravdivostní\s+hodnota)\s+([a-zA-Z_][a-zA-Z0-9_]*))");
     std::smatch match;
     std::string searchText = code;
     
@@ -152,29 +152,39 @@ static TextEditor::LanguageDefinition createCzechLanguageDefinition() {
     const char* const keywords[] = {
         "celé číslo",
         "levituj",
+        "krátké desetinné číslo",
         "dvojté",
+        "dlouhé desetinné číslo",
         "charakter",
+        "znak",
         "pravdivostní hodnota",
         "prázdnota",
+        "funkce",
         "provázek",
+        "text",
         "pravda",
         "falešný",
+        "nepravda",
         "když",
         "jinak kdyby",
         "jinak",
         "přepínač",
         "věc",
+        "případ",
         "výchozí",
         "přerušení",
         "pokračovat",
         "návrat",
+        "vrátit",
         "pro",
         "zatímco",
         "dělat",
         "třída",
         "strukturovat",
         "veřejnost",
+        "veřejný",
         "soukromé",
+        "soukromý",
         "chráněný",
         "tento",
         "viruální",
