@@ -90,6 +90,7 @@ editor je schopen:
 - přeložit a spustit kód
 - spustit poslední přeložený soubor
 - načíst poslední uložený kód/příklad kódu
+- vybrat a načíst předpřipravené ukázky z tlačítka "Ukázky" vedle ostatních akcí
 
 ### Spuštění GUI
 
@@ -194,9 +195,11 @@ int main() {
 | nulový ukazatel | nullptr | Ukazatel |
 | norma | std | Jmenný prostor |
 | norma::znakový výstup | std::cout | Výstup |
+| začátek výpisu | std::cout | Výstup |
 | znakový výstup | cout | Výstup |
 | zadávání znaků | cin | Vstup |
 | norma::koncová čára | std::endl | Výstup |
+| konec výpisu | std::endl | Výstup |
 | koncová čára | endl | Výstup |
 | rovná se | = | Operátor přiřazení |
 | plus | + | Aritmetický operátor |
@@ -307,6 +310,7 @@ The project now includes a lightweight GUI editor tailored to Czech syntax. The 
 - Transpiling and running code
 - Running the last compiled file
 - Loading previously saved code/example code
+- Picking from premade examples in an `Ukázky` menu
 
 ### Run GUI
 
@@ -411,9 +415,11 @@ int main() {
 | nulový ukazatel | nullptr | Pointer |
 | norma | std | Namespace |
 | norma::znakový výstup | std::cout | Output |
+| začátek výpisu | std::cout | Output |
 | znakový výstup | cout | Output |
 | zadávání znaků | cin | Input |
 | norma::koncová čára | std::endl | Output |
+| konec výpisu | std::endl | Output |
 | koncová čára | endl | Output |
 | rovná se | = | Assignment Operator |
 | plus | + | Arithmetic Operator |

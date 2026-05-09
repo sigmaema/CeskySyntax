@@ -5,19 +5,26 @@
 
 namespace csx {
 
-std::string CodeGenerator::generateCpp(const std::vector<std::string>& translatedLines) {
+std::string CodeGenerator::generateCpp(const std::vector<std::string>& translatedLines, bool wrapInMain) {
     std::ostringstream output;
 
     output << "#include <iostream>\n";
     output << "#include <string>\n\n";
-    output << "int main() {\n";
 
-    for (const std::string& line : translatedLines) {
-        output << "    " << line << "\n";
+    if (wrapInMain) {
+        output << "int main() {\n";
+
+        for (const std::string& line : translatedLines) {
+            output << "    " << line << "\n";
+        }
+
+        output << "    return 0;\n";
+        output << "}\n";
+    } else {
+        for (const std::string& line : translatedLines) {
+            output << line << "\n";
+        }
     }
-
-    output << "    return 0;\n";
-    output << "}\n";
 
     return output.str();
 }

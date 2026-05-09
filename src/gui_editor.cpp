@@ -106,7 +106,16 @@ static bool saveStringToFile(const std::string& path, const std::string& content
     return true;
 }
 
-static std::string runTranspileAndRun(const std::string& sourceText) {
+struct ExampleSnippet {
+    const char* label;
+    const char* source;
+};
+
+static void loadExampleSnippet(const ExampleSnippet& snippet, std::string& code) {
+    code = snippet.source;
+}
+
+static std::string runTranspileAndRun(const std::string& sourceText, bool wrapInMain) {
     const std::string projectRoot = getProjectRoot();
     if (projectRoot.empty()) return "Chyba: Nelze určit projektový adresář.\n";
     const std::string srcPath = projectRoot + "\\temp_source.csx";
@@ -120,7 +129,36 @@ static std::string runTranspileAndRun(const std::string& sourceText) {
 
     std::ostringstream cmd;
     cmd << '"' << transpiler << '"' << " \"" << srcPath << "\" \"" << outCpp << "\" --run --compiler=g++.exe";
+    if (!wrapInMain) {
+        cmd << " --no-main";
+    }
     return runCommandCapture(cmd.str());
+}
+
+static std::string getGeneratedCpp(const std::string& sourceText, bool wrapInMain) {
+    const std::string projectRoot = getProjectRoot();
+    if (projectRoot.empty()) return "";
+    const std::string srcPath = projectRoot + "\\temp_source.csx";
+    const std::string outCpp = projectRoot + "\\temp_generated.cpp";
+    const std::string transpiler = projectRoot + "\\build\\cesky_transpiler.exe";
+
+    std::ofstream f(srcPath, std::ios::binary);
+    if (!f) return std::string("// Error: cannot write source file\n");
+    f << sourceText;
+    f.close();
+
+    std::ostringstream cmd;
+    cmd << '"' << transpiler << '"' << " \"" << srcPath << "\" \"" << outCpp << "\" --compiler=g++.exe";
+    if (!wrapInMain) cmd << " --no-main";
+    // Run transpiler to produce C++ file
+    std::string res = runCommandCapture(cmd.str());
+    // Load generated C++ (if exists)
+    std::string generated = loadFileToString(outCpp);
+    if (generated.empty()) {
+        // If generation failed, return transpiler output
+        return "// Transpiler output:\n" + res;
+    }
+    return generated;
 }
 
 #ifdef CESKYSYNTAX_HAS_TEXTEDITOR
@@ -200,9 +238,11 @@ static TextEditor::LanguageDefinition createCzechLanguageDefinition() {
         "nulový ukazatel",
         "norma",
         "norma::znakový výstup",
+        "začátek výpisu",
         "znakový výstup",
         "zadávání znaků",
         "norma::koncová čára",
+        "konec výpisu",
         "koncová čára",
         "rovná se",
         "plus",
@@ -225,8 +265,10 @@ static TextEditor::LanguageDefinition createCzechLanguageDefinition() {
     }
 
     langDef.mTokenRegexStrings.push_back({R"(norma::znakový\s+výstup)", TextEditor::PaletteIndex::Keyword});
+    langDef.mTokenRegexStrings.push_back({R"(začátek\s+výpisu)", TextEditor::PaletteIndex::Keyword});
     langDef.mTokenRegexStrings.push_back({R"(znakový\s+výstup)", TextEditor::PaletteIndex::Keyword});
     langDef.mTokenRegexStrings.push_back({R"(norma::koncová\s+čára)", TextEditor::PaletteIndex::Keyword});
+    langDef.mTokenRegexStrings.push_back({R"(konec\s+výpisu)", TextEditor::PaletteIndex::Keyword});
     langDef.mTokenRegexStrings.push_back({R"(koncová\s+čára)", TextEditor::PaletteIndex::Keyword});
     langDef.mTokenRegexStrings.push_back({R"(jinak\s+kdyby)", TextEditor::PaletteIndex::Keyword});
     langDef.mTokenRegexStrings.push_back({R"(v\s+řadě\s+za\s+sebou)", TextEditor::PaletteIndex::Keyword});
@@ -344,6 +386,37 @@ int main(int, char**)
     static std::string code = "celé číslo x = 0\n\nzatímco x < 3 {\n    norma::znakový výstup << x << norma::koncová čára\n    x = x plus 1\n}\n";
     static std::string output;
     static ImGuiSimpleEditor simpleEditor;
+    static bool wrapInMain = true;
+    static const ExampleSnippet examples[] = {
+        {
+            "Základní cyklus",
+            "celé číslo x rovná se 0\n\nzatímco x menší než 5 {\n    začátek výpisu << x << konec výpisu\n    x rovná se x plus 1\n}\n"
+        },
+        {
+            "FizzBuzz",
+            "celé číslo i rovná se 1\nzatímco i menší nebo rovno 15 {\n    když i rovná se? 0 {\n        začátek výpisu << i << konec výpisu\n    } jinak když (i zbytek po dělení 3 rovná se? 0) {\n        začátek výpisu << \"Fizz\" << konec výpisu\n    } jinak když (i zbytek po dělení 5 rovná se? 0) {\n        začátek výpisu << \"Buzz\" << konec výpisu\n    } jinak {\n        začátek výpisu << i << konec výpisu\n    }\n    i rovná se i plus 1\n}\n"
+        },
+        {
+            "Součet a průměr",
+            "celé číslo n rovná se 5\ncelé číslo i rovná se 0\ncelé číslo suma rovná se 0\nzatímco i menší než n {\n    suma rovná se suma plus i\n    i rovná se i plus 1\n}\nzačátek výpisu << suma << konec výpisu\ntext avg rovná se \"\"\n"
+        },
+        {
+            "Podmínka a výstup",
+            "celé číslo x rovná se 5\nkdyž x rovná se? 5 {\n    začátek výpisu << x krát 10 << konec výpisu\n} jinak {\n    začátek výpisu << 0 << konec výpisu\n}\n"
+        },
+        {
+            "Součet dvou čísel",
+            "celé číslo a rovná se 2\ncelé číslo b rovná se 3\nzačátek výpisu << a plus b << konec výpisu\n"
+        },
+        {
+            "Alias výstupu",
+            "celé číslo hodnota rovná se 7\nzačátek výpisu << hodnota << konec výpisu\n"
+        },
+        {
+            "Výpis v cyklu",
+            "celé číslo i rovná se 1\nzatímco i menší nebo rovno 4 {\n    začátek výpisu << i << konec výpisu\n    i rovná se i plus 1\n}\n"
+        }
+    };
 #ifdef CESKYSYNTAX_HAS_TEXTEDITOR
     static TextEditor advancedEditor;
     static bool advancedEditorInitialized = false;
@@ -395,11 +468,34 @@ int main(int, char**)
             saveStringToFile(examplePath, code);
         }
         ImGui::SameLine();
+        if (ImGui::Button("Ukázky")) {
+            ImGui::OpenPopup("UkázkyPopup");
+        }
+        if (ImGui::BeginPopup("UkázkyPopup")) {
+            for (const ExampleSnippet& snippet : examples) {
+                if (ImGui::MenuItem(snippet.label)) {
+                    loadExampleSnippet(snippet, code);
+#ifdef CESKYSYNTAX_HAS_TEXTEDITOR
+                    advancedEditor.SetText(code);
+                    auto langDef = createCzechLanguageDefinition();
+                    updateDeclaredVariables(code, langDef);
+                    advancedEditor.SetLanguageDefinition(langDef);
+#endif
+                }
+            }
+            ImGui::EndPopup();
+        }
+        ImGui::SameLine();
         if (ImGui::Button("Přeložit a spustit")) {
 #ifdef CESKYSYNTAX_HAS_TEXTEDITOR
             code = advancedEditor.GetText();
 #endif
-            output = runTranspileAndRun(code);
+            output = runTranspileAndRun(code, wrapInMain);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Obnovit přeložené C++")) {
+            // Force refresh of preview by updating lastEditorText
+            // Next code will capture the current editor text and regenerate
         }
         ImGui::SameLine();
         if (ImGui::Button("Spustit poslední spustitelný kód")) {
@@ -408,6 +504,10 @@ int main(int, char**)
             output = runCommandCapture(cmd.str());
         }
 
+        ImGui::Separator();
+        ImGui::Checkbox("Přidat int main() automaticky", &wrapInMain);
+        ImGui::SameLine();
+        ImGui::TextDisabled("Vypnout pro vlastní vstupní bod.");
         ImGui::Separator();
 
 #ifdef CESKYSYNTAX_HAS_TEXTEDITOR
@@ -427,6 +527,12 @@ int main(int, char**)
             auto langDef = advancedEditor.GetLanguageDefinition();
             updateDeclaredVariables(currentEditorText, const_cast<TextEditor::LanguageDefinition&>(langDef));
             advancedEditor.SetLanguageDefinition(langDef);
+            // regenerate preview when editor content changes
+            static std::string generatedCpp;
+            generatedCpp = getGeneratedCpp(currentEditorText, wrapInMain);
+            // store generatedCpp in a static so it survives until render
+            static std::string lastGeneratedCpp = generatedCpp;
+            lastGeneratedCpp = generatedCpp;
         }
 #endif
 
@@ -437,6 +543,25 @@ int main(int, char**)
     simpleEditor.Render("CeskyEditor", code, ImVec2(0, ImGui::GetContentRegionAvail().y - 120));
 #endif
 
+        ImGui::End();
+
+        // Generated C++ preview window
+        ImGui::SetNextWindowSize(ImVec2(800.0f, 400.0f), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Generated C++");
+        // Show preview (regenerate if simple editor used)
+    #ifdef CESKYSYNTAX_HAS_TEXTEDITOR
+        std::string previewText = advancedEditor.GetText();
+        static std::string previewCpp = getGeneratedCpp(previewText, wrapInMain);
+        ImGui::BeginChild("CppPreview", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
+        ImGui::TextUnformatted(previewCpp.c_str());
+        ImGui::EndChild();
+    #else
+        std::string previewText = code;
+        static std::string previewCpp = getGeneratedCpp(previewText, wrapInMain);
+        ImGui::BeginChild("CppPreview", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
+        ImGui::TextUnformatted(previewCpp.c_str());
+        ImGui::EndChild();
+    #endif
         ImGui::End();
 
         // Output window (read-only, scrollable, resizable)

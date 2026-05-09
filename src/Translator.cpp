@@ -148,9 +148,11 @@ Translator::Translator()
           {"nulový ukazatel", "nullptr"},
           {"norma", "std"},
           {"norma::znakový výstup", "std::cout"},
+          {"začátek výpisu", "std::cout"},
           {"znakový výstup", "cout"},
           {"zadávání znaků", "cin"},
           {"norma::koncová čára", "std::endl"},
+          {"konec výpisu", "std::endl"},
           {"koncová čára", "endl"},
           {"rovná se", "="},
           {"plus", "+"},
@@ -223,6 +225,15 @@ std::string Translator::translateLine(const std::string& line) const {
         std::string expression = trim(stripped.substr(std::string("vypis").size()));
         expression = replaceWholeWords(expression);
         return std::string("std::cout << (") + expression + ") << std::endl;";
+    }
+
+    {
+        const std::regex outputPattern(R"(^začátek\s+výpisu\s*<<\s*(.*?)\s*<<\s*konec\s+výpisu\s*$)");
+        std::smatch outputMatch;
+        if (std::regex_match(stripped, outputMatch, outputPattern) && outputMatch.size() > 1) {
+            std::string expression = replaceWholeWords(trim(outputMatch[1].str()));
+            return std::string("std::cout << (") + expression + ") << std::endl;";
+        }
     }
 
     std::string replaced = replaceWholeWords(stripped);

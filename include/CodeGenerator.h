@@ -7,7 +7,7 @@ namespace csx {
 
 class CodeGenerator {
 public:
-    static std::string generateCpp(const std::vector<std::string>& translatedLines);
+    static std::string generateCpp(const std::vector<std::string>& translatedLines, bool wrapInMain = true);
     static bool writeToFile(const std::string& outputPath, const std::string& cppCode);
 };
 

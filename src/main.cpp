@@ -38,7 +38,7 @@ std::string readFile(const std::string& path) {
 
 void printUsage(const char* programName) {
     std::cout << "Usage:\n";
-    std::cout << "  " << programName << " <input.custom> [output.cpp] [--run] [--compiler=<name>]\n\n";
+    std::cout << "  " << programName << " <input.custom> [output.cpp] [--run] [--compiler=<name>] [--no-main]\n\n";
     std::cout << "Example:\n";
     std::cout << "  " << programName << " examples/demo.csx generated.cpp --run --compiler=g++\n";
 }
@@ -55,6 +55,7 @@ int main(int argc, char* argv[]) {
     std::string outputPath = "generated.cpp";
     bool runAfterGeneration = false;
     std::string compiler = "g++";
+    bool wrapInMain = true;
 
     if (argc >= 3 && !startsWith(std::string(argv[2]), "--")) {
         outputPath = argv[2];
@@ -64,6 +65,8 @@ int main(int argc, char* argv[]) {
         const std::string arg = argv[i];
         if (arg == "--run") {
             runAfterGeneration = true;
+        } else if (arg == "--no-main") {
+            wrapInMain = false;
         } else if (startsWith(arg, "--compiler=")) {
             compiler = arg.substr(std::string("--compiler=").size());
         }
@@ -78,7 +81,7 @@ int main(int argc, char* argv[]) {
     const std::vector<std::string> lines = csx::Lexer::splitLines(sourceCode);
     csx::Translator translator;
     const std::vector<std::string> translated = translator.translateProgram(lines);
-    const std::string cppCode = csx::CodeGenerator::generateCpp(translated);
+    const std::string cppCode = csx::CodeGenerator::generateCpp(translated, wrapInMain);
 
     if (!csx::CodeGenerator::writeToFile(outputPath, cppCode)) {
         std::cerr << "Failed to write generated C++ file: " << outputPath << "\n";
