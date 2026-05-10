@@ -106,6 +106,15 @@ static bool saveStringToFile(const std::string& path, const std::string& content
     return true;
 }
 
+static std::string resolveTranspilerPath() {
+    const std::string projectRoot = getProjectRoot();
+    const std::string buildMinGW = projectRoot + "\\build-mingw\\cesky_transpiler.exe";
+    const std::string buildDefault = projectRoot + "\\build\\cesky_transpiler.exe";
+    std::ifstream minGW(buildMinGW, std::ios::binary);
+    if (minGW.good()) return buildMinGW;
+    return buildDefault;
+}
+
 struct ExampleSnippet {
     const char* label;
     const char* source;
@@ -120,7 +129,7 @@ static std::string runTranspileAndRun(const std::string& sourceText, bool wrapIn
     if (projectRoot.empty()) return "Chyba: Nelze určit projektový adresář.\n";
     const std::string srcPath = projectRoot + "\\temp_source.csx";
     const std::string outCpp = projectRoot + "\\temp_generated.cpp";
-    const std::string transpiler = projectRoot + "\\build\\cesky_transpiler.exe";
+    const std::string transpiler = resolveTranspilerPath();
 
     std::ofstream f(srcPath, std::ios::binary);
     if (!f) return "Chyba: Nelze zapsat zdrojový soubor.\n";
@@ -140,7 +149,7 @@ static std::string getGeneratedCpp(const std::string& sourceText, bool wrapInMai
     if (projectRoot.empty()) return "";
     const std::string srcPath = projectRoot + "\\temp_source.csx";
     const std::string outCpp = projectRoot + "\\temp_generated.cpp";
-    const std::string transpiler = projectRoot + "\\build\\cesky_transpiler.exe";
+    const std::string transpiler = resolveTranspilerPath();
 
     std::ofstream f(srcPath, std::ios::binary);
     if (!f) return std::string("// Error: cannot write source file\n");
@@ -150,12 +159,9 @@ static std::string getGeneratedCpp(const std::string& sourceText, bool wrapInMai
     std::ostringstream cmd;
     cmd << '"' << transpiler << '"' << " \"" << srcPath << "\" \"" << outCpp << "\" --compiler=g++.exe";
     if (!wrapInMain) cmd << " --no-main";
-    // Run transpiler to produce C++ file
     std::string res = runCommandCapture(cmd.str());
-    // Load generated C++ (if exists)
     std::string generated = loadFileToString(outCpp);
     if (generated.empty()) {
-        // If generation failed, return transpiler output
         return "// Transpiler output:\n" + res;
     }
     return generated;
@@ -385,8 +391,12 @@ int main(int, char**)
     // Editor buffers
     static std::string code = "celé číslo x = 0\n\nzatímco x < 3 {\n    norma::znakový výstup << x << norma::koncová čára\n    x = x plus 1\n}\n";
     static std::string output;
+    static std::string cppPreview;
+    static std::string lastPreviewSource;
+    static bool showCppPreview = true;
     static ImGuiSimpleEditor simpleEditor;
     static bool wrapInMain = true;
+    static bool lastPreviewWrapInMain = true;
     static const ExampleSnippet examples[] = {
         {
             "Základní cyklus",
@@ -493,9 +503,8 @@ int main(int, char**)
             output = runTranspileAndRun(code, wrapInMain);
         }
         ImGui::SameLine();
-        if (ImGui::Button("Obnovit přeložené C++")) {
-            // Force refresh of preview by updating lastEditorText
-            // Next code will capture the current editor text and regenerate
+        if (ImGui::Button(showCppPreview ? "Skrýt náhled C++" : "Zobrazit náhled C++")) {
+            showCppPreview = !showCppPreview;
         }
         ImGui::SameLine();
         if (ImGui::Button("Spustit poslední spustitelný kód")) {
@@ -518,50 +527,98 @@ int main(int, char**)
     ImGui::Separator();
 #endif
 
-        // Update declared variables if text changed (for live highlighting)
+        // Update editor state if text changed, and refresh preview lazily.
 #ifdef CESKYSYNTAX_HAS_TEXTEDITOR
         static std::string lastEditorText = code;
         std::string currentEditorText = advancedEditor.GetText();
         if (currentEditorText != lastEditorText) {
             lastEditorText = currentEditorText;
+            code = currentEditorText;
             auto langDef = advancedEditor.GetLanguageDefinition();
             updateDeclaredVariables(currentEditorText, const_cast<TextEditor::LanguageDefinition&>(langDef));
             advancedEditor.SetLanguageDefinition(langDef);
-            // regenerate preview when editor content changes
-            static std::string generatedCpp;
-            generatedCpp = getGeneratedCpp(currentEditorText, wrapInMain);
-            // store generatedCpp in a static so it survives until render
-            static std::string lastGeneratedCpp = generatedCpp;
-            lastGeneratedCpp = generatedCpp;
         }
 #endif
 
-        // Editor area (uses ImGuiSimpleEditor)
+        const std::string currentSourceText = code;
+        if (currentSourceText != lastPreviewSource || wrapInMain != lastPreviewWrapInMain) {
+            cppPreview = getGeneratedCpp(currentSourceText, wrapInMain);
+            lastPreviewSource = currentSourceText;
+            lastPreviewWrapInMain = wrapInMain;
+        }
+
+        // Editor area and optional preview pane.
+        ImVec2 contentAvail = ImGui::GetContentRegionAvail();
+        float paneHeight = contentAvail.y;
+        float paneSpacing = ImGui::GetStyle().ItemSpacing.x;
 #ifdef CESKYSYNTAX_HAS_TEXTEDITOR
-    advancedEditor.Render("CeskyEditorAdvanced", ImVec2(-1.0f, ImGui::GetContentRegionAvail().y - 120.0f), true);
+        if (showCppPreview && contentAvail.x > 700.0f) {
+            float previewWidth = contentAvail.x * 0.42f;
+            float editorWidth = contentAvail.x - previewWidth - paneSpacing;
+            if (editorWidth < 280.0f) {
+                editorWidth = contentAvail.x;
+                previewWidth = 0.0f;
+            }
+
+            ImGui::BeginChild("EditorPane", ImVec2(editorWidth, paneHeight), true);
+            advancedEditor.Render("CeskyEditorAdvanced", ImVec2(-1.0f, -1.0f), true);
+            ImGui::EndChild();
+
+            if (previewWidth > 0.0f) {
+                ImGui::SameLine();
+                ImGui::BeginChild("PreviewPane", ImVec2(0.0f, paneHeight), true);
+                ImGui::TextUnformatted("Náhled přeloženého C++");
+                ImGui::SameLine();
+                if (ImGui::SmallButton("X")) {
+                    showCppPreview = false;
+                }
+                ImGui::Separator();
+                ImGui::BeginChild("PreviewScroll", ImVec2(0.0f, 0.0f), false, ImGuiWindowFlags_HorizontalScrollbar);
+                const char* previewText = cppPreview.empty() ? "// Náhled není k dispozici." : cppPreview.c_str();
+                ImGui::TextUnformatted(previewText);
+                ImGui::EndChild();
+                ImGui::EndChild();
+            }
+        } else {
+            ImGui::BeginChild("EditorPane", ImVec2(-1.0f, paneHeight), true);
+            advancedEditor.Render("CeskyEditorAdvanced", ImVec2(-1.0f, -1.0f), true);
+            ImGui::EndChild();
+        }
 #else
-    simpleEditor.Render("CeskyEditor", code, ImVec2(0, ImGui::GetContentRegionAvail().y - 120));
+        if (showCppPreview && contentAvail.x > 700.0f) {
+            float previewWidth = contentAvail.x * 0.42f;
+            float editorWidth = contentAvail.x - previewWidth - paneSpacing;
+            if (editorWidth < 280.0f) {
+                editorWidth = contentAvail.x;
+                previewWidth = 0.0f;
+            }
+
+            ImGui::BeginChild("EditorPane", ImVec2(editorWidth, paneHeight), true);
+            simpleEditor.Render("CeskyEditor", code, ImVec2(-1.0f, -1.0f));
+            ImGui::EndChild();
+
+            if (previewWidth > 0.0f) {
+                ImGui::SameLine();
+                ImGui::BeginChild("PreviewPane", ImVec2(0.0f, paneHeight), true);
+                ImGui::TextUnformatted("Náhled přeloženého C++");
+                ImGui::SameLine();
+                if (ImGui::SmallButton("X")) {
+                    showCppPreview = false;
+                }
+                ImGui::Separator();
+                ImGui::BeginChild("PreviewScroll", ImVec2(0.0f, 0.0f), false, ImGuiWindowFlags_HorizontalScrollbar);
+                const char* previewText = cppPreview.empty() ? "// Náhled není k dispozici." : cppPreview.c_str();
+                ImGui::TextUnformatted(previewText);
+                ImGui::EndChild();
+                ImGui::EndChild();
+            }
+        } else {
+            ImGui::BeginChild("EditorPane", ImVec2(-1.0f, paneHeight), true);
+            simpleEditor.Render("CeskyEditor", code, ImVec2(-1.0f, -1.0f));
+            ImGui::EndChild();
+        }
 #endif
 
-        ImGui::End();
-
-        // Generated C++ preview window
-        ImGui::SetNextWindowSize(ImVec2(800.0f, 400.0f), ImGuiCond_FirstUseEver);
-        ImGui::Begin("Generated C++");
-        // Show preview (regenerate if simple editor used)
-    #ifdef CESKYSYNTAX_HAS_TEXTEDITOR
-        std::string previewText = advancedEditor.GetText();
-        static std::string previewCpp = getGeneratedCpp(previewText, wrapInMain);
-        ImGui::BeginChild("CppPreview", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
-        ImGui::TextUnformatted(previewCpp.c_str());
-        ImGui::EndChild();
-    #else
-        std::string previewText = code;
-        static std::string previewCpp = getGeneratedCpp(previewText, wrapInMain);
-        ImGui::BeginChild("CppPreview", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
-        ImGui::TextUnformatted(previewCpp.c_str());
-        ImGui::EndChild();
-    #endif
         ImGui::End();
 
         // Output window (read-only, scrollable, resizable)

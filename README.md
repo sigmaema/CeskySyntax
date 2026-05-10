@@ -25,25 +25,168 @@ Mapování se nachází v `src/Translator.cpp` (konstruktor třídy `Translator`
 
 Komplexní seznam klíčových slov viz tabulka níže
 
-## Kompilace
+## Instalace a Nastavení (Windows)
 
-### CMake
+### Podpora operačních systémů
 
-```bash
-cmake -S . -B build
-cmake --build build
+- **Windows 10/11 (x86_64)** - plná podpora (doporučeno)
+- **Linux** - částečná podpora (TUI editor, CLI transpiler)
+- **macOS** - nedokončeno
+
+### Požadavky
+
+- **CMake** verze 3.16 nebo vyšší
+- **C++ kompilátor** (MinGW 32-bit nebo LLVM-MinGW 64-bit)
+- **Git** (pro klonování repozitáře)
+- **PowerShell** 5.1 nebo vyšší (pro Windows)
+
+### Krok 1: Instalace CMake
+
+1. Jděte na https://cmake.org/download/
+2. Stáhněte **CMake 3.28.0** nebo novější pro Windows (64-bit)
+3. Spusťte instalátor a vyberte: **"Add CMake to the system PATH"** (důležité)
+4. Ověřte instalaci v PowerShellu:
+   ```powershell
+   cmake --version
+   ```
+
+### Krok 2: Instalace LLVM-MinGW Kompilátoru
+
+1. Navštívte https://github.com/mstorsjo/llvm-mingw/releases
+2. Stáhněte nejnovější verzi **`llvm-mingw-*.ucrt-x86_64.zip`** (přibližně 1.5 GB)
+   - Doporučeno: verze 20260421 nebo novější
+3. Rozbalte ZIP soubor na jednoduchou cestu bez speciálních znaků, např.:
+   ```
+   C:\llvm-mingw
+   ```
+   nebo
+   ```
+   C:\Users\{YourUsername}\AppData\Local\llvm-mingw
+   ```
+4. Ověřte instalaci otevřením PowerShellu a spuštěním:
+   ```powershell
+   C:\llvm-mingw\bin\g++.exe --version
+   ```
+   Měl by se zobrazit výstup s verzí LLVM.
+
+### Krok 3: Klonování Repozitáře
+
+```powershell
+cd C:\Users\{YourUsername}\Documents
+git clone https://github.com/vase-uzivatelske-jmeno/CeskySyntax.git
+cd CeskySyntax
 ```
 
-## Konfigurace Místního Toolchainu
+### Krok 4: Konfigurace Prostředí
 
-Umístěte místní hodnoty toolchainu do souboru `.env` v kořeni projektu, na základě `.env.example`.
+1. Otevřete PowerShell v adresáři projektu
+2. Spusťte následující příkazy (nahraďte cestu dle vaší instalace):
 
-Potřebné položky:
+```powershell
+# Nastavte cestu ke kompilátoru
+$env:PATH = "C:\Program Files\CMake\bin;C:\llvm-mingw\bin;" + $env:PATH
 
-- `CESKYSYNTAX_TOOLBIN` = adresář obsahující `g++.exe` a DLL knihovny LLVM-MinGW
-- `CESKYSYNTAX_COMPILER` = příkaz kompilátoru, který používá transpilér, obvykle `g++.exe`
+# Ověřte, že g++ je dostupný
+g++ --version
+```
 
-Editor TUI a skripty smoke-test budou tento soubor automaticky číst, pokud je přítomen.
+### Krok 5: Konfigurace Projektu (CMake)
+
+```powershell
+# V adresáři projektu CeskySyntax
+cmake -S . -B build-mingw -G "Unix Makefiles"
+```
+
+Tento příkaz vytvoří adresář `build-mingw` s konfiguračními soubory.
+
+### Krok 6: Kompilace
+
+Pro transpiler CLI:
+```powershell
+cmake --build build-mingw --target cesky_transpiler
+```
+
+Pro GUI editor (doporučeno pro uživatele):
+```powershell
+cmake --build build-mingw --target cesky_gui
+```
+
+Pro obě aplikace:
+```powershell
+cmake --build build-mingw
+```
+
+**Časový odhad:** První kompilace trvá 2-5 minut (ImGui se kompiluje poprvé), následující kompilace je rychlejší.
+
+### Krok 7: Spuštění Aplikace
+
+#### GUI Editor (Doporučeno)
+
+```powershell
+.\build-mingw\cesky_gui.exe
+```
+
+GUI se otevře v okně s:
+- **Levý panel**: Editor kódu s českou syntaxí a zvýrazňováním
+- **Pravý panel** (volitelný): Náhled přeloženého C++ kódu
+- **Tlačítka**: Načíst příklad, Uložit, Přeložit a spustit, Zobrazit/Skrýt náhled
+- **Dolní panel**: Výstup programu a chybové zprávy
+
+#### CLI Transpiler
+
+```powershell
+.\build-mingw\cesky_transpiler.exe examples\demo.csx generated.cpp
+```
+
+Nebo s automatickým spuštěním:
+```powershell
+.\build-mingw\cesky_transpiler.exe examples\demo.csx generated.cpp --run --compiler=g++.exe
+```
+
+### Krok 8: První Test
+
+1. Otevřete GUI (`cesky_gui.exe`)
+2. Klikněte na tlačítko **"Ukázky"** a vyberte **"Základní cyklus"**
+3. Klikněte **"Přeložit a spustit"**
+4. V dolním panelu by se měl zobrazit výstup: `0 1 2 3 4`
+
+### Řešení Problémů
+
+**Chyba: "cmake: příkaz nebyl nalezen"**
+- Zkontrolujte, zda je CMake nainstalován v `C:\Program Files\CMake\bin`
+- Restartujte PowerShell a zkuste znovu
+
+**Chyba: "g++: příkaz nebyl nalezen"**
+- Ověřte, že LLVM-MinGW je rozbalena v `C:\llvm-mingw`
+- Spusťte: `$env:PATH = "C:\llvm-mingw\bin;" + $env:PATH` v PowerShellu
+
+**Chyba: "undefined reference to" během linkování**
+- Ujistěte se, že kompilujete s `cmake --build build-mingw`, nikoli ručně
+- Smazte `build-mingw` a zkonfigurujte znovu: `cmake -S . -B build-mingw -G "Unix Makefiles"`
+
+**Chyba: Znaky jsou v GUI špatně zobrazeny (místo "č" se zobrazuje jiný znak)**
+- To je normální, pokud systém nemá nainstalován správný font
+- GUI by měl automaticky načíst Segoe UI nebo Consolas
+
+**Chyba: "Permission denied" při kompilaci**
+- Zavřete `cesky_gui.exe`, pokud je spuštěný
+- Zkuste znovu: `cmake --build build-mingw --target cesky_gui`
+
+### Volitelné: Nastavení Prostředí do Profilu PowerShellu
+
+Abyste nemuseli pokaždé nastavovat `$env:PATH`, přidejte do PowerShellprofile:
+
+```powershell
+$profile
+```
+
+Otevřete soubor v textovém editoru a přidejte:
+```powershell
+# CeskySyntax Setup
+$env:PATH = "C:\Program Files\CMake\bin;C:\llvm-mingw\bin;" + $env:PATH
+```
+
+Příště se prostředí automaticky nastaví při otevření PowerShellu.
 
 ## Spuštění Transpilátoru
 
@@ -81,29 +224,39 @@ Příkazy:
 - `smazatvse` — Vymazání veškerého kódu
 - `ukoncit` — Zavření editoru
 
-## GUI (Dear ImGui) — Volitelně
+## GUI Editor (Dear ImGui)
 
-Projekt byl od posledního commitu obohacen o nenáročný GUI editor uzpůsobený českému syntaxu.
+GUI editor je doporučený způsob používání CeskySyntax. Nabízí:
 
-editor je schopen:
-- uložit kód
-- přeložit a spustit kód
-- spustit poslední přeložený soubor
-- načíst poslední uložený kód/příklad kódu
-- vybrat a načíst předpřipravené ukázky z tlačítka "Ukázky" vedle ostatních akcí
+- **Editor s zvýrazňováním syntaxe** - Podpora všech českých klíčových slov s barvením
+- **Náhled C++** - Vidíte generovaný C++ kód vedle svého zdrojového kódu
+- **Příklady** - Předdefinované příklady (Základní cyklus, FizzBuzz, Součet a průměr atd.)
+- **Spuštění** - Přeložit, zkompilovat a spustit kód jedním kliknutím
+- **Uložení/Načtení** - Uložte svůj kód a načtěte jej později
+- **Automata `int main()`** - Volitelně automaticky obalte kód do `int main()` funkce
 
 ### Spuštění GUI
 
-Závislosti (ImGui, GLFW, ImGuiColorTextEdit) jsou již zahrnuty v `third_party/` jako vendored knihovny.
-
-Na Windows s MinGW:
+Po kompilaci (viz výše) jednoduše spusťte:
 
 ```powershell
-$env:PATH = "C:/Program Files/CMake/bin;C:/path/to/llvm-mingw/bin;" + $env:PATH
-cmake -S . -B build-mingw -G "Unix Makefiles"
-cmake --build build-mingw --target cesky_gui
 .\build-mingw\cesky_gui.exe
 ```
+
+GUI závisí na ImGui, GLFW a dalších knihovnách, které jsou již zahrnuty v `third_party/` jako vendored knihovny.
+
+### Ovládání GUI
+
+1. **Tlačítko "Načíst příklad kódu"** - Načte poslední uložený kód
+2. **Tlačítko "Uložit"** - Uloží aktuální kód
+3. **Tlačítko "Ukázky"** - Nabídne seznam příkladů
+4. **Tlačítko "Přeložit a spustit"** - Transpiluje, kompiluje a spustí kód
+5. **Tlačítko "Skrýt/Zobrazit náhled C++"** - Zapne/vypne náhled vygenerovaného C++
+6. **Tlačítko "Spustit poslední spustitelný kód"** - Spustí poslední zkompilovaný výstup bez nové transpilace
+7. **Checkbox "Přidat int main() automaticky"** - Určuje, zda se automaticky přidá `int main()` obal
+8. **Horní panel** - Zvýrazňování syntaxe a editace kódu
+9. **Pravý panel** - Náhled generovaného C++ kódu (pokud je aktivován)
+10. **Dolní panel** - Výstup programu a chybové zprávy
 
 ## Příklad Vstupu (`.csx`) (hezký čitelný kód)
 
@@ -246,84 +399,250 @@ The mapping is in `src/Translator.cpp` (constructor of `Translator`).
 
 Comprehensive keyword table see below
 
-## Build
+## Installation and Setup (Windows)
+
+### Supported Operating Systems
+
+- **Windows 10/11 (x86_64)** - Full support (recommended)
+- **Linux** - Partial support (TUI editor, CLI transpiler)
+- **macOS** - In progress
+
+### Requirements
+
+- **CMake** version 3.16 or higher
+- **C++ Compiler** (MinGW 32-bit or LLVM-MinGW 64-bit)
+- **Git** (for cloning the repository)
+- **PowerShell** 5.1 or higher (for Windows)
+
+### Step 1: Install CMake
+
+1. Go to https://cmake.org/download/
+2. Download **CMake 3.28.0** or newer for Windows (64-bit)
+3. Run the installer and select: **"Add CMake to the system PATH"** (important)
+4. Verify installation in PowerShell:
+   ```powershell
+   cmake --version
+   ```
+
+### Step 2: Install LLVM-MinGW Compiler
+
+1. Visit https://github.com/mstorsjo/llvm-mingw/releases
+2. Download the latest **`llvm-mingw-*.ucrt-x86_64.zip`** (approximately 1.5 GB)
+   - Recommended: version 20260421 or newer
+3. Extract the ZIP file to a simple path without special characters, e.g.:
+   ```
+   C:\llvm-mingw
+   ```
+   or
+   ```
+   C:\Users\{YourUsername}\AppData\Local\llvm-mingw
+   ```
+4. Verify installation by opening PowerShell and running:
+   ```powershell
+   C:\llvm-mingw\bin\g++.exe --version
+   ```
+   You should see LLVM version information.
+
+### Step 3: Clone the Repository
+
+```powershell
+cd C:\Users\{YourUsername}\Documents
+git clone https://github.com/your-username/CeskySyntax.git
+cd CeskySyntax
+```
+
+### Step 4: Configure Environment
+
+1. Open PowerShell in the project directory
+2. Run the following commands (replace the path with your installation):
+
+```powershell
+# Set path to compiler
+$env:PATH = "C:\Program Files\CMake\bin;C:\llvm-mingw\bin;" + $env:PATH
+
+# Verify that g++ is available
+g++ --version
+```
+
+### Step 5: Configure Project (CMake)
+
+```powershell
+# In the CeskySyntax directory
+cmake -S . -B build-mingw -G "Unix Makefiles"
+```
+
+This command creates a `build-mingw` directory with configuration files.
+
+### Step 6: Build
+
+For the CLI transpiler:
+```powershell
+cmake --build build-mingw --target cesky_transpiler
+```
+
+For the GUI editor (recommended for users):
+```powershell
+cmake --build build-mingw --target cesky_gui
+```
+
+For both applications:
+```powershell
+cmake --build build-mingw
+```
+
+**Time estimate:** First build takes 2-5 minutes (ImGui compiles for the first time), subsequent builds are faster.
+
+### Step 7: Run the Application
+
+#### GUI Editor (Recommended)
+
+```powershell
+.\build-mingw\cesky_gui.exe
+```
+
+The GUI opens in a window with:
+- **Left panel**: Code editor with Czech syntax and highlighting
+- **Right panel** (optional): Preview of the translated C++ code
+- **Buttons**: Load example, Save, Transpile and run, Show/Hide preview
+- **Bottom panel**: Program output and error messages
+
+#### CLI Transpiler
+
+```powershell
+.\build-mingw\cesky_transpiler.exe examples\demo.csx generated.cpp
+```
+
+Or with automatic execution:
+```powershell
+.\build-mingw\cesky_transpiler.exe examples\demo.csx generated.cpp --run --compiler=g++.exe
+```
+
+### Step 8: First Test
+
+1. Open the GUI (`cesky_gui.exe`)
+2. Click the **"Ukázky"** button and select **"Základní cyklus"**
+3. Click **"Přeložit a spustit"**
+4. In the bottom panel you should see output: `0 1 2 3 4`
+
+### Troubleshooting
+
+**Error: "cmake: command not found"**
+- Check that CMake is installed in `C:\Program Files\CMake\bin`
+- Restart PowerShell and try again
+
+**Error: "g++: command not found"**
+- Verify that LLVM-MinGW is extracted in `C:\llvm-mingw`
+- Run: `$env:PATH = "C:\llvm-mingw\bin;" + $env:PATH` in PowerShell
+
+**Error: "undefined reference to" during linking**
+- Make sure you compile with `cmake --build build-mingw`, not manually
+- Delete `build-mingw` and reconfigure: `cmake -S . -B build-mingw -G "Unix Makefiles"`
+
+**Error: Characters are displayed incorrectly in GUI (instead of "č" a different character appears)**
+- This is normal if the system doesn't have the correct font installed
+- GUI should automatically load Segoe UI or Consolas
+
+**Error: "Permission denied" during compilation**
+- Close `cesky_gui.exe` if it's running
+- Try again: `cmake --build build-mingw --target cesky_gui`
+
+### Optional: Add Environment Setup to PowerShell Profile
+
+To avoid setting up `$env:PATH` every time, add to your PowerShell profile:
+
+```powershell
+$profile
+```
+
+Open the file in a text editor and add:
+```powershell
+# CeskySyntax Setup
+$env:PATH = "C:\Program Files\CMake\bin;C:\llvm-mingw\bin;" + $env:PATH
+```
+
+Next time you open PowerShell, the environment will be configured automatically.
+
+---
+
+## Quick Build (For Those Who Already Have Everything Set Up)
 
 ### CMake
 
 ```bash
-cmake -S . -B build
-cmake --build build
+cmake -S . -B build-mingw -G "Unix Makefiles"
+cmake --build build-mingw
 ```
 
-## Local Toolchain Config
+## GUI Editor (Dear ImGui)
 
-Place the local toolchain values in a `.env` file in the project root, based on `.env.example`.
+The GUI editor is the recommended way to use CeskySyntax. It offers:
 
-Required entries:
+- **Syntax-highlighted editor** - Support for all Czech keywords with coloring
+- **C++ Preview** - See the generated C++ code next to your source code
+- **Examples** - Pre-defined examples (Basic loop, FizzBuzz, Sum and average, etc.)
+- **Execution** - Transpile, compile and run code in one click
+- **Save/Load** - Save your code and load it later
+- **Automatic `int main()`** - Optionally automatically wrap code in `int main()` function
 
-- `CESKYSYNTAX_TOOLBIN` = directory containing `g++.exe` and LLVM-MinGW DLL libraries
-- `CESKYSYNTAX_COMPILER` = compiler command used by the transpiler, usually `g++.exe`
+### Running the GUI
 
-The TUI editor and smoke-test scripts will read this file automatically when present.
+After compiling (see above), simply run:
 
-## Run Transpiler
+```powershell
+.\build-mingw\cesky_gui.exe
+```
+
+The GUI depends on ImGui, GLFW and other libraries that are already included in `third_party/` as vendored libraries.
+
+### GUI Controls
+
+1. **"Load example code" button** - Loads the last saved code
+2. **"Save" button** - Saves the current code
+3. **"Ukázky" (Examples) button** - Offers a list of examples
+4. **"Transpile and run" button** - Transpiles, compiles and runs the code
+5. **"Hide/Show C++ preview" button** - Toggles the preview of generated C++
+6. **"Run last compiled code" button** - Runs the last compiled output without transpiling again
+7. **"Add int main() automatically" checkbox** - Determines whether `int main()` wrapper is added automatically
+8. **Top panel** - Syntax highlighting and code editing
+9. **Right panel** - Preview of generated C++ code (if enabled)
+10. **Bottom panel** - Program output and error messages
+
+---
+
+## CLI Transpiler Usage
 
 ```bash
-./build/cesky_transpiler examples/demo.csx generated.cpp
+./build-mingw/cesky_transpiler.exe examples/demo.csx generated.cpp
 ```
 
 Optionally compile and run the generated C++:
 
 ```bash
-./build/cesky_transpiler examples/demo.csx generated.cpp --run --compiler=g++
+./build-mingw/cesky_transpiler.exe examples/demo.csx generated.cpp --run --compiler=g++.exe
 ```
-
-On Windows with MinGW in PATH replace `./build/cesky_transpiler` with the path to the executable generated by CMake.
 
 ## TUI Editor
 
-Run the terminal editor with environment state:
-
 ```powershell
-$toolbin = "C:\path\to\llvm-mingw\bin"
+# Run terminal editor with environment setup
+$toolbin = "C:\llvm-mingw\bin"
 $env:CESKYSYNTAX_TOOLBIN = $toolbin
 $env:CESKYSYNTAX_COMPILER = "g++.exe"
 $env:PATH = "$toolbin;$env:PATH"
-./build/cesky_editor.exe
+.\build-mingw\cesky_editor.exe
 ```
 
-Commands:
-- `pridat` — Adding code lines (possible to add multiple lines at once, press Enter 2 times to finish)
-- `upravit <N>` — Editing line number N
-- `smazat <N>` — Deletion of line number N
+Available Commands:
+- `pridat` — Add code lines (can add multiple lines at once, press Enter twice to finish)
+- `upravit <N>` — Edit line number N
+- `smazat <N>` — Delete line number N
 - `ukazat` — Show all lines
-- `spustit` — Transpilation, compilation and execution of code
-- `spustitexe` — Running the last generated file (without recompilation)
-- `smazatvse` — Deletion of all code
-- `ukoncit` — Closing the editor
-- and a secret command that you can find in the code (it's a niche reference)
+- `spustit` — Transpile, compile and execute code
+- `spustitexe` — Run the last generated executable (without recompilation)
+- `smazatvse` — Clear all code
+- `ukoncit` — Close the editor
 
-## GUI (Dear ImGui)
-
-The project now includes a lightweight GUI editor tailored to Czech syntax. The editor is capable of:
-- Saving code
-- Transpiling and running code
-- Running the last compiled file
-- Loading previously saved code/example code
-- Picking from premade examples in an `Ukázky` menu
-
-### Run GUI
-
-Dependencies (ImGui, GLFW, ImGuiColorTextEdit) are already included in `third_party/` as vendored libraries.
-
-On Windows with MinGW:
-
-```powershell
-$env:PATH = "C:/Program Files/CMake/bin;C:/path/to/llvm-mingw/bin;" + $env:PATH
-cmake -S . -B build-mingw -G "Unix Makefiles"
-cmake --build build-mingw --target cesky_gui
-.\build-mingw\cesky_gui.exe
-```
+---
 
 ## Example Input (`.csx`) (nice readable code)
 
