@@ -71,10 +71,17 @@ Komplexní seznam klíčových slov viz tabulka níže
 
 ### Krok 3: Klonování Repozitáře
 
+**Důležité:** Projekt používá git submoduly pro `third_party/` knihovny. Klonujte s `--recursive` флагom:
+
 ```powershell
 cd C:\Users\{YourUsername}\Documents
-git clone https://github.com/vase-uzivatelske-jmeno/CeskySyntax.git
+git clone --recursive https://github.com/vase-uzivatelske-jmeno/CeskySyntax.git
 cd CeskySyntax
+```
+
+Pokud jste již naklonovali bez `-r`, spusťte:
+```powershell
+git submodule update --init --recursive
 ```
 
 ### Krok 4: Konfigurace Prostředí
@@ -250,13 +257,15 @@ Po kompilaci (viz výše) jednoduše spusťte:
 
 ### Závislosti GUI
 
-GUI editor vyžaduje následující knihovny, které jsou již zahrnuty v adresáři **`third_party/`** projektu:
+GUI editor vyžaduje následující knihovny, které jsou zahrnuty v adresáři **`third_party/`** jako **git submoduly**:
 
 - **ImGui** (Dear ImGui) - framework pro uživatelské rozhraní
 - **GLFW** - správa oken a vstupu
 - **ImGuiColorTextEdit** - zvýrazňování syntaxe editoru
 
 Tyto knihovny se automaticky zkompilují během `cmake --build build-mingw`.
+
+**Poznámka o submodulech:** `third_party/` je nyní spravován jako git submoduly. Pokud klonujete bez `--recursive`, budou adresáře prázdné. Ujistěte se, že jste klonovali s `--recursive` nebo spusťte `git submodule update --init --recursive`.
 
 **Důležité:** Pokud vidíte chybu "adresář `third_party` nenalezen" nebo "CMake nemůže najít ImGui", zajistěte:
 1. Že jste naklonovali úplné úložiště (včetně subdirectories)
@@ -463,10 +472,17 @@ Comprehensive keyword table see below
 
 ### Step 3: Clone the Repository
 
+**Important:** The project uses git submodules for `third_party/` libraries. Clone with the `--recursive` flag:
+
 ```powershell
 cd C:\Users\{YourUsername}\Documents
-git clone https://github.com/your-username/CeskySyntax.git
+git clone --recursive https://github.com/your-username/CeskySyntax.git
 cd CeskySyntax
+```
+
+If you already cloned without `-r`, run:
+```powershell
+git submodule update --init --recursive
 ```
 
 ### Step 4: Configure Environment
@@ -617,13 +633,15 @@ After compiling (see above), simply run:
 
 ### GUI Dependencies
 
-The GUI editor requires the following libraries, which are already included in the project's **`third_party/`** directory:
+The GUI editor requires the following libraries, which are included in the project's **`third_party/`** directory as **git submodules**:
 
 - **ImGui** (Dear ImGui) - UI framework
 - **GLFW** - window management and input
 - **ImGuiColorTextEdit** - syntax highlighting for the editor
 
 These libraries will automatically compile during `cmake --build build-mingw`.
+
+**Note about submodules:** `third_party/` is now managed as git submodules. If you clone without `--recursive`, the directories will be empty. Make sure you cloned with `--recursive` or run `git submodule update --init --recursive`.
 
 **Important:** If you see an error "directory `third_party` not found" or "CMake cannot find ImGui", ensure:
 1. You cloned the complete repository (including subdirectories)
