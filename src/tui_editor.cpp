@@ -171,6 +171,25 @@ const std::string OUTPUT_FILE = "temp_generated.cpp";
 const std::string EXE_FILE = "temp_generated.exe";
 const std::string COMPILER = "g++.exe";
 
+std::string resolveTranspilerPath(const std::string& projectRoot) {
+    const std::string mingwPath = projectRoot + "\\build-mingw\\cesky_transpiler.exe";
+    const std::string defaultPath = projectRoot + "\\build\\cesky_transpiler.exe";
+
+    FILE* f = fopen(mingwPath.c_str(), "r");
+    if (f != nullptr) {
+        fclose(f);
+        return mingwPath;
+    }
+
+    f = fopen(defaultPath.c_str(), "r");
+    if (f != nullptr) {
+        fclose(f);
+        return defaultPath;
+    }
+
+    return "";
+}
+
 std::string runTranspiler(const std::vector<std::string>& lines) {
     const std::string projectRoot = getProjectRoot();
     if (projectRoot.empty()) {
@@ -179,9 +198,14 @@ std::string runTranspiler(const std::vector<std::string>& lines) {
 
     const std::string sourcePath = projectRoot + "\\temp_source.csx";
     const std::string outputPath = projectRoot + "\\temp_generated.cpp";
-    const std::string transpilerPath = projectRoot + "\\build\\cesky_transpiler.exe";
+    const std::string transpilerPath = resolveTranspilerPath(projectRoot);
     const std::string compilerPath = getEnvOrDefault("CESKYSYNTAX_COMPILER", "g++.exe");
     const std::string toolBinPath = getEnvOrDefault("CESKYSYNTAX_TOOLBIN", "");
+
+    if (transpilerPath.empty()) {
+        return "Chyba: cesky_transpiler.exe nebyl nalezen v build-mingw ani build.\n"
+               "Nejprve spusťte: cmake --build build-mingw --target cesky_transpiler\n";
+    }
 
     prependToPath(toolBinPath);
 
