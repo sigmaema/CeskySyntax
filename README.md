@@ -172,6 +172,11 @@ Nebo s automatickým spuštěním:
 - Zavřete `cesky_gui.exe`, pokud je spuštěný
 - Zkuste znovu: `cmake --build build-mingw --target cesky_gui`
 
+**Chyba: "Cannot find ImGui", "Cannot find GLFW" nebo "directory `third_party` not found"**
+- Ujistěte se, že `third_party/` adresář existuje a obsahuje `imgui/`, `glfw/` a `ImGuiColorTextEdit/`
+- Pokud jste naklonovali bez `-r` (recursive), spusťte: `git submodule update --init --recursive`
+- Případně proveďte nový klon s: `git clone --recursive https://github.com/your-username/CeskySyntax.git`
+
 ### Volitelné: Nastavení Prostředí do Profilu PowerShellu
 
 Abyste nemuseli pokaždé nastavovat `$env:PATH`, přidejte do PowerShellprofile:
@@ -243,7 +248,20 @@ Po kompilaci (viz výše) jednoduše spusťte:
 .\build-mingw\cesky_gui.exe
 ```
 
-GUI závisí na ImGui, GLFW a dalších knihovnách, které jsou již zahrnuty v `third_party/` jako vendored knihovny.
+### Závislosti GUI
+
+GUI editor vyžaduje následující knihovny, které jsou již zahrnuty v adresáři **`third_party/`** projektu:
+
+- **ImGui** (Dear ImGui) - framework pro uživatelské rozhraní
+- **GLFW** - správa oken a vstupu
+- **ImGuiColorTextEdit** - zvýrazňování syntaxe editoru
+
+Tyto knihovny se automaticky zkompilují během `cmake --build build-mingw`.
+
+**Důležité:** Pokud vidíte chybu "adresář `third_party` nenalezen" nebo "CMake nemůže najít ImGui", zajistěte:
+1. Že jste naklonovali úplné úložiště (včetně subdirectories)
+2. Spusťte: `git clone --recursive https://github.com/your-username/CeskySyntax.git` nebo
+3. Pokud jste již naklonovali bez rekurzí, spusťte: `git submodule update --init --recursive`
 
 ### Ovládání GUI
 
@@ -546,6 +564,11 @@ Or with automatic execution:
 - Close `cesky_gui.exe` if it's running
 - Try again: `cmake --build build-mingw --target cesky_gui`
 
+**Error: "Cannot find ImGui", "Cannot find GLFW" or "directory `third_party` not found"**
+- Ensure that the `third_party/` directory exists and contains `imgui/`, `glfw/`, and `ImGuiColorTextEdit/`
+- If you cloned without `-r` (recursive), run: `git submodule update --init --recursive`
+- Or perform a fresh clone with: `git clone --recursive https://github.com/your-username/CeskySyntax.git`
+
 ### Optional: Add Environment Setup to PowerShell Profile
 
 To avoid setting up `$env:PATH` every time, add to your PowerShell profile:
@@ -592,7 +615,20 @@ After compiling (see above), simply run:
 .\build-mingw\cesky_gui.exe
 ```
 
-The GUI depends on ImGui, GLFW and other libraries that are already included in `third_party/` as vendored libraries.
+### GUI Dependencies
+
+The GUI editor requires the following libraries, which are already included in the project's **`third_party/`** directory:
+
+- **ImGui** (Dear ImGui) - UI framework
+- **GLFW** - window management and input
+- **ImGuiColorTextEdit** - syntax highlighting for the editor
+
+These libraries will automatically compile during `cmake --build build-mingw`.
+
+**Important:** If you see an error "directory `third_party` not found" or "CMake cannot find ImGui", ensure:
+1. You cloned the complete repository (including subdirectories)
+2. Run: `git clone --recursive https://github.com/your-username/CeskySyntax.git` or
+3. If you already cloned without recursion, run: `git submodule update --init --recursive`
 
 ### GUI Controls
 
