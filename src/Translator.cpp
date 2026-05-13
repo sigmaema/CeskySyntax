@@ -239,6 +239,7 @@ std::string Translator::translateLine(const std::string& line) const {
     std::string replaced = replaceWholeWords(stripped);
 
     replaced = normalizeControlHeader(replaced, "if");
+    replaced = normalizeControlHeader(replaced, "else if");
     replaced = normalizeControlHeader(replaced, "while");
     replaced = normalizeControlHeader(replaced, "for");
 

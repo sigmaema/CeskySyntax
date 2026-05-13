@@ -426,6 +426,10 @@ int main(int, char**)
             "Výpis v cyklu",
             "celé číslo i rovná se 1\nzatímco i menší nebo rovno 4 {\n    začátek výpisu << i << konec výpisu\n    i rovná se i plus 1\n}\n"
         }
+        ,{
+            "Vstup a podmínka",
+            "celé číslo číslo rovná se 0\nzačátek výpisu << \"Zadej číslo:\" << konec výpisu\nnorma::zadávání znaků >> číslo\nkdyž číslo menší než 67 {\n    začátek výpisu << \"menší než 67\" << konec výpisu\n} jinak když číslo rovná se? 67 {\n    začátek výpisu << \"67\" << konec výpisu\n} jinak {\n    začátek výpisu << \"větší než 67\" << konec výpisu\n}\n"
+        }
     };
 #ifdef CESKYSYNTAX_HAS_TEXTEDITOR
     static TextEditor advancedEditor;
